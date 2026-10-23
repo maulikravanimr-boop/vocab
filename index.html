@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Language Flashcards &amp; Vocabulary Quiz</title>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Wordbank">
+  <meta name="theme-color" content="#4f46e5">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Gujarati:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .devanagari {
+      font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    }
+    .gujarati {
+      font-family: 'Noto Sans Gujarati', 'Inter', sans-serif;
+    }
+    .card-3d-wrap {
+      perspective: 1200px;
+    }
+    .card-3d-inner {
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+    .card-3d-inner.flipped {
+      transform: rotateY(180deg);
+    }
+    .card-face {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .card-back {
+      transform: rotateY(180deg);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
+          <span>शब्द</span>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Wordbank Flashcards &amp; Quiz</h1>
+          <p class="text-xs text-slate-500">Hindi, Urdu &amp; Gujarati Vocabulary with Context &amp; Examples</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs & Sync Button -->
+      <div class="flex items-center gap-2">
+        <button id="btn-sync-modal" class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-semibold transition-all active:scale-95 shadow-sm" title="Synchronize with Keep notes or add new words">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          <span>Sync / Add</span>
+        </button>
+
+        <nav class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-sm font-medium">
+          <button id="tab-flashcards" class="px-3 py-1.5 rounded-lg transition-colors bg-white text-indigo-700 shadow-sm font-semibold">
+            Flashcards
+          </button>
+          <button id="tab-quiz" class="px-3 py-1.5 rounded-lg transition-colors text-slate-600 hover:text-slate-900">
+            Weekly Quiz
+          </button>
+          <button id="tab-browse" class="px-3 py-1.5 rounded-lg transition-colors text-slate-600 hover:text-slate-900">
+            Word Bank (<span id="total-words-nav">28</span>)
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-6">
+
+    <!-- ============================================== -->
+    <!-- FLASHCARDS VIEW -->
+    <!-- ============================================== -->
+    <section id="view-flashcards" class="space-y-6">
+      <!-- Toolbar -->
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">Filter:</span>
+          <button id="filter-all" class="px-3 py-1 text-xs font-semibold rounded-full transition-colors bg-indigo-50 text-indigo-700 border border-indigo-200">
+            All (<span id="count-all">28</span>)
+          </button>
+          <button id="filter-gujarati" class="px-3 py-1 text-xs font-medium rounded-full transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent">
+            Gujarati (<span id="count-gujarati">7</span>)
+          </button>
+          <button id="filter-hindi" class="px-3 py-1 text-xs font-medium rounded-full transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent">
+            Hindi &amp; Urdu (<span id="count-hindi">21</span>)
+          </button>
+          <button id="filter-starred" class="px-3 py-1 text-xs font-medium rounded-full transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent">
+            ★ Starred (<span id="starred-count">0</span>)
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-shuffle" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            Shuffle
+          </button>
+          <button id="btn-export-csv" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Export Anki / CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Flashcard Stage -->
+      <div class="max-w-xl mx-auto">
+        <!-- Progress bar & Counter -->
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-2 px-1">
+          <span id="card-counter">Card 1 of 28</span>
+          <span class="text-slate-400">Tap card or <kbd class="px-1.5 py-0.5 bg-slate-200 rounded text-slate-700 text-[10px]">Space</kbd> to flip</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5 mb-4 overflow-hidden">
+          <div id="card-progress" class="bg-indigo-600 h-1.5 rounded-full transition-all duration-300" style="width: 4%"></div>
+        </div>
+
+        <!-- 3D Card Container -->
+        <div class="card-3d-wrap w-full min-h-[380px] sm:min-h-[400px] cursor-pointer group select-none" id="flashcard-container">
+          <div id="flashcard-inner" class="card-3d-inner relative w-full h-full rounded-3xl shadow-md border border-slate-200">
+
+            <!-- FRONT FACE -->
+            <div class="card-face absolute inset-0 bg-white rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center text-center shadow-sm min-h-[380px]">
+              <div class="w-full flex items-center justify-between">
+                <span id="card-badge" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                  Hindi &amp; Urdu
+                </span>
+                <button id="btn-star" class="text-slate-300 hover:text-amber-400 p-1.5 rounded-full hover:bg-slate-50 transition-colors" title="Bookmark / Star this card">
+                  <svg id="star-icon" class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                </button>
+              </div>
+
+              <!-- Main Word Display -->
+              <div class="my-auto py-4">
+                <h2 id="card-script" class="text-4xl sm:text-5xl font-bold text-slate-900 tracking-wide mb-3 devanagari">
+                  हवाला
+                </h2>
+                <p id="card-word" class="text-2xl sm:text-3xl font-medium text-indigo-600">
+                  Hawala
+                </p>
+              </div>
+
+              <div class="text-xs text-slate-400 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-indigo-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                <span>Tap card or press <kbd class="px-1 bg-slate-100 rounded text-slate-600">Space</kbd> for meaning &amp; example</span>
+              </div>
+            </div>
+
+            <!-- BACK FACE -->
+            <div class="card-face card-back absolute inset-0 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white rounded-3xl p-6 sm:p-7 flex flex-col justify-between items-center text-center shadow-lg min-h-[380px] overflow-y-auto">
+              <div class="w-full flex items-center justify-between text-indigo-300 text-xs">
+                <span id="back-badge">Meaning &amp; Example</span>
+                <span class="text-indigo-400 font-semibold tracking-wider uppercase text-[10px]">Tap to flip back</span>
+              </div>
+
+              <div class="my-auto px-1 max-w-md w-full text-center py-2">
+                <!-- Meaning -->
+                <p id="card-meaning" class="text-lg sm:text-xl font-semibold text-white leading-snug mb-2">
+                  Informal value transfer system, money laundering, or citation/reference
+                </p>
+                <p id="card-notes" class="text-xs text-indigo-200 leading-relaxed font-light mb-3">
+                  Traditional trust-based remittance system; also used for citing references.
+                </p>
+
+                <!-- Example Sentence Box -->
+                <div class="bg-indigo-900/60 border border-indigo-500/30 rounded-2xl p-3 text-left">
+                  <div class="text-[10px] font-bold text-amber-300 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <span>💡 Example Sentence</span>
+                  </div>
+                  <p id="card-example-orig" class="text-sm font-semibold text-white leading-relaxed mb-1 devanagari">
+                    उसने अपनी दलील को साबित करने के लिए कई पुरानी किताबों का हवाला दिया।
+                  </p>
+                  <p id="card-example-translit" class="text-[11px] text-indigo-200 italic mb-1">
+                    Usne apni daleel ko saabit karne ke liye kai puraani kitaabon ka hawala diya.
+                  </p>
+                  <p id="card-example-en" class="text-xs text-slate-300">
+                    "In order to prove his argument, he gave references to several ancient books."
+                  </p>
+                </div>
+              </div>
+
+              <div class="text-[11px] text-indigo-300 mt-2">
+                Word: <strong id="back-word" class="text-white">Hawala</strong> (<span id="back-script" class="devanagari">हवाला</span>)
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center justify-between gap-3 mt-5">
+          <button id="btn-prev" class="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-xl border border-slate-200 shadow-sm transition-all active:scale-95 text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            <span>Previous</span>
+          </button>
+
+          <button id="btn-flip" class="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2 text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <span>Flip Card</span>
+          </button>
+
+          <button id="btn-next" class="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-xl border border-slate-200 shadow-sm transition-all active:scale-95 text-sm">
+            <span>Next</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- WEEKLY QUIZ VIEW -->
+    <!-- ============================================== -->
+    <section id="view-quiz" class="hidden space-y-6">
+      <!-- Quiz Setup Screen -->
+      <div id="quiz-setup" class="max-w-xl mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm text-center">
+        <div class="w-14 h-14 bg-indigo-100 text-indigo-700 rounded-2xl mx-auto flex items-center justify-center mb-4">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">Weekly Vocabulary Quiz</h2>
+        <p class="text-sm text-slate-500 mb-6">Test yourself with realistic, language-isolated multiple-choice questions. Hindi and Gujarati options are strictly separated with believable distractors.</p>
+
+        <!-- Quiz Length Option -->
+        <div class="mb-4">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Number of Questions:</label>
+          <div class="inline-flex p-1 bg-slate-100 rounded-xl">
+            <button id="opt-len-5" class="px-5 py-2 rounded-lg font-semibold text-sm transition-colors bg-white text-indigo-700 shadow-sm">
+              5 Words
+            </button>
+            <button id="opt-len-10" class="px-5 py-2 rounded-lg font-medium text-sm transition-colors text-slate-600 hover:text-slate-900">
+              10 Words
+            </button>
+          </div>
+        </div>
+
+        <!-- Language Scope Option -->
+        <div class="mb-6">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Quiz Language Focus:</label>
+          <div class="inline-flex p-1 bg-slate-100 rounded-xl text-xs">
+            <button id="opt-lang-both" class="px-3.5 py-1.5 rounded-lg font-semibold transition-colors bg-white text-indigo-700 shadow-sm">
+              Both Languages (Mix)
+            </button>
+            <button id="opt-lang-hindi" class="px-3.5 py-1.5 rounded-lg font-medium transition-colors text-slate-600 hover:text-slate-900">
+              Hindi &amp; Urdu Only
+            </button>
+            <button id="opt-lang-gujarati" class="px-3.5 py-1.5 rounded-lg font-medium transition-colors text-slate-600 hover:text-slate-900">
+              Gujarati Only
+            </button>
+          </div>
+        </div>
+
+        <!-- Schedule Notice -->
+        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-left mb-6 flex items-start gap-3">
+          <div class="text-indigo-600 mt-0.5">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-indigo-900 uppercase tracking-wide">Automated Schedule Active</h4>
+            <p class="text-xs text-indigo-700 mt-0.5">Your automated quiz runs <strong>every Sunday around 10:00 AM IST</strong>, automatically syncing the latest additions from both Keep notes directly in your chat.</p>
+          </div>
+        </div>
+
+        <button id="btn-start-quiz" class="w-full py-3.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md transition-all active:scale-95 text-base">
+          Start Quiz Now
+        </button>
+      </div>
+
+      <!-- Quiz Active Playing Screen -->
+      <div id="quiz-active" class="hidden max-w-xl mx-auto space-y-4">
+        <!-- Progress Bar & Header -->
+        <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+          <span id="quiz-question-number">Question 1 of 5</span>
+          <span id="quiz-score-live" class="font-medium text-indigo-600">Score: 0</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+          <div id="quiz-progress-bar" class="bg-indigo-600 h-1.5 rounded-full transition-all duration-300" style="width: 20%"></div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <span id="quiz-q-badge" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700">
+              Hindi &amp; Urdu
+            </span>
+            <span class="text-xs text-slate-400">Choose the believable correct meaning</span>
+          </div>
+
+          <div class="text-center py-4 mb-4">
+            <h3 id="quiz-q-script" class="text-3xl sm:text-4xl font-bold text-slate-900 mb-1 devanagari">
+              हवाला
+            </h3>
+            <p id="quiz-q-word" class="text-xl font-medium text-indigo-600">
+              Hawala
+            </p>
+          </div>
+
+          <!-- Multiple Choice Options -->
+          <div id="quiz-options-container" class="space-y-2.5 mb-6">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Explanation Box (Appears after answer) -->
+          <div id="quiz-explanation" class="hidden p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 mb-4 space-y-2">
+            <div class="font-semibold text-slate-900 flex items-center gap-1.5">
+              <span id="quiz-feedback-icon">✓</span>
+              <span id="quiz-feedback-title">Correct!</span>
+            </div>
+            <p id="quiz-feedback-text" class="text-slate-600 leading-relaxed"></p>
+            <div id="quiz-feedback-example" class="pt-2 border-t border-slate-200 text-xs text-slate-500 italic"></div>
+          </div>
+
+          <!-- Next Question Button -->
+          <button id="btn-quiz-next" class="hidden w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-sm transition-all active:scale-95 text-sm">
+            Continue to Next Question →
+          </button>
+        </div>
+      </div>
+
+      <!-- Quiz Completed Screen -->
+      <div id="quiz-finished" class="hidden max-w-xl mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm text-center">
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-3xl mx-auto flex items-center justify-center mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-1">Quiz Completed!</h2>
+        <p class="text-sm text-slate-500 mb-6">Great job practicing with realistic options today.</p>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-6">
+          <div class="text-4xl font-extrabold text-indigo-600 mb-1" id="quiz-final-score">5 / 5</div>
+          <p class="text-xs uppercase tracking-wider font-semibold text-slate-400" id="quiz-percentage">100% Correct</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <button id="btn-quiz-restart" class="py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-sm transition-all active:scale-95 text-sm">
+            Take Another Random Quiz
+          </button>
+          <button id="btn-quiz-to-flashcards" class="py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-all active:scale-95 text-sm">
+            Back to Flashcards
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- BROWSE ALL WORDS VIEW -->
+    <!-- ============================================== -->
+    <section id="view-browse" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div class="relative w-full sm:w-80">
+          <input type="text" id="browse-search" placeholder="Search words, scripts, or meanings..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span>Showing <strong id="browse-count">28</strong> entries</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th class="py-3 px-4">Word &amp; Script</th>
+                <th class="py-3 px-4">Language</th>
+                <th class="py-3 px-4">Meaning</th>
+                <th class="py-3 px-4 hidden md:table-cell">Example Sentence</th>
+              </tr>
+            </thead>
+            <tbody id="browse-table-body" class="divide-y divide-slate-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================== -->
+  <!-- SYNC & QUICK-ADD MODAL -->
+  <!-- ============================================== -->
+  <div id="sync-modal-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-lg rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-5 animate-in fade-in duration-200">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Synchronize &amp; Add Words</h3>
+            <p class="text-xs text-slate-500">Live AI Sync or Instant Manual Add</p>
+          </div>
+        </div>
+        <button id="btn-close-sync-modal" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Modal Tabs -->
+      <div class="flex p-1 bg-slate-100 rounded-xl text-xs font-medium">
+        <button id="modal-tab-instant" class="flex-1 py-1.5 rounded-lg transition-colors bg-white text-indigo-700 shadow-sm font-semibold">
+          Instant Add Word
+        </button>
+        <button id="modal-tab-ai" class="flex-1 py-1.5 rounded-lg transition-colors text-slate-600 hover:text-slate-900">
+          Live Keep Sync (Chat)
+        </button>
+      </div>
+
+      <!-- Tab 1: Instant Manual Add -->
+      <div id="modal-view-instant" class="space-y-3.5">
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Type or paste a word from your Keep note to add it directly to this browser app right now:
+        </p>
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Language:</label>
+          <select id="input-word-lang" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="Hindi &amp; Urdu">Hindi / Urdu</option>
+            <option value="Gujarati">Gujarati</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Word &amp; Script:</label>
+          <input type="text" id="input-word-term" placeholder="e.g. Dilkash (दिलकश)" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Meaning &amp; Notes:</label>
+          <input type="text" id="input-word-meaning" placeholder="e.g. Alluring, captivating" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Example Sentence (Optional):</label>
+          <input type="text" id="input-word-example" placeholder="e.g. वादियों में शाम का मंज़र दिलकश था।" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <button id="btn-save-instant-word" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all active:scale-95 shadow-sm">
+          Add Word to Flashcards &amp; Quiz
+        </button>
+      </div>
+
+      <!-- Tab 2: Live AI Sync Instructions -->
+      <div id="modal-view-ai" class="hidden space-y-3 text-xs text-slate-600 leading-relaxed">
+        <div class="p-3.5 bg-indigo-50 border border-indigo-100 rounded-2xl space-y-2">
+          <p class="font-bold text-indigo-900">Why does Live Sync happen through chat?</p>
+          <p class="text-indigo-800">
+            Because this web app runs locally on your phone without storing private Google login passwords, it uses your Gemini assistant as the secure bridge to read your Keep notes.
+          </p>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+          <p class="font-semibold text-slate-900">1-Step Immediate Sync:</p>
+          <p class="text-slate-600">Whenever you add words in Keep, simply tell Gemini:</p>
+          <div class="p-2 bg-white rounded-lg border border-slate-200 text-indigo-600 font-mono font-medium text-[11px]">
+            "Sync my flashcards from Keep"
+          </div>
+          <p class="text-slate-500 text-[11px]">Gemini automatically reads your notes, generates high-quality Devanagari/Gujarati scripts, sentences, and believable quiz options, and re-loads your Canvas panel immediately.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>Synchronized with Keep Wordbanks: <span class="font-medium text-slate-600">Gujarati</span> &amp; <span class="font-medium text-slate-600">Urdu/Hindi</span></p>
+      <p>Recurring schedule: Weekly on Sundays around 10:00 AM IST</p>
+    </div>
+  </footer>
+
+  <script>
+    const DEFAULT_WORDS = [{"id": "gu-1", "word": "Mediyu", "script": "\u0aae\u0ac7\u0aa1\u0ac0\u0aaf\u0ac1", "lang": "Gujarati", "category": "Gujarati", "meaning": "Upper floor room, balcony, or upper storey space", "notes": "Plural of 'medi' (\u0aae\u0ac7\u0aa1\u0ac0). Traditionally denotes an elevated living space or balcony terrace in traditional vernacular Gujarati homes.", "example_orig": "\u0a97\u0abe\u0aae\u0aa8\u0abe \u0a9c\u0ac2\u0aa8\u0abe \u0a98\u0ab0\u0aae\u0abe\u0a82 \u0aae\u0ac7\u0aa1\u0ac0\u0aaf\u0ac1 \u0aaa\u0ab0 \u0aac\u0ac7\u0ab8\u0ac0\u0aa8\u0ac7 \u0ab8\u0abe\u0a82\u0a9c\u0aa8\u0ac0 \u0a9a\u0abe \u0aaa\u0ac0\u0ab5\u0abe\u0aa8\u0ac0 \u0aae\u0a9c\u0abe \u0a9c \u0a85\u0ab2\u0a97 \u0ab9\u0aa4\u0ac0.", "example_translit": "Gaamna joona gharma mediyu par besine saanjni chaa peevani maja j alag hati.", "example_en": "Sitting on the upper-floor balcony of the old village house and having evening tea was a distinct pleasure.", "distractors": ["Central open courtyard inside a traditional house", "Underground basement used for grains storage", "Wooden pillar at the front porch entrance"]}, {"id": "gu-2", "word": "Bharp\u016br", "script": "\u0aad\u0ab0\u0aaa\u0ac2\u0ab0", "lang": "Gujarati", "category": "Gujarati", "meaning": "Abundant, full, overflowing, brimming (\u0ab8\u0a82\u0aaa\u0ac2\u0ab0\u0acd\u0aa3, \u0a9b\u0ab2\u0acb\u0a9b\u0ab2)", "notes": "Used to denote complete abundance or a state of being filled to the brim (\u0ab8\u0a82\u0aaa\u0ac2\u0ab0\u0acd\u0aa3 / \u0a9b\u0ab2\u0acb\u0a9b\u0ab2).", "example_orig": "\u0a86 \u0ab5\u0ab0\u0acd\u0ab7\u0ac7 \u0ab8\u0abe\u0ab0\u0acb \u0ab5\u0ab0\u0ab8\u0abe\u0aa6 \u0aa5\u0ab5\u0abe\u0aa5\u0ac0 \u0aa1\u0ac7\u0aae \u0aaa\u0abe\u0aa3\u0ac0\u0aa5\u0ac0 \u0aad\u0ab0\u0aaa\u0ac2\u0ab0 \u0aad\u0ab0\u0abe\u0a88 \u0a97\u0aaf\u0acb \u0a9b\u0ac7.", "example_translit": "Aa varshe saaro varsaad thavaathi dam paanithi bharp\u016br bharaai gayo chhe.", "example_en": "Due to good rains this year, the dam is brimming and full of water.", "distractors": ["Scant and insufficient", "Temporary and fleeting", "Dry and barren"]}, {"id": "gu-3", "word": "Rojbaroj", "script": "\u0ab0\u0acb\u0a9c\u0aac\u0ab0\u0acb\u0a9c", "lang": "Gujarati", "category": "Gujarati", "meaning": "Day-to-day, daily routine, everyday activities", "notes": "Refers to regular day-to-day life and recurring everyday tasks.", "example_orig": "\u0ab0\u0acb\u0a9c\u0aac\u0ab0\u0acb\u0a9c\u0aa8\u0ac0 \u0aad\u0abe\u0a97\u0aa6\u0acb\u0aa1\u0aae\u0abe\u0a82\u0aa5\u0ac0 \u0aa5\u0acb\u0aa1\u0acb \u0ab8\u0aae\u0aaf \u0aaa\u0acb\u0aa4\u0abe\u0aa8\u0abe \u0ab6\u0acb\u0a96 \u0aae\u0abe\u0a9f\u0ac7 \u0aaa\u0aa3 \u0a95\u0abe\u0aa2\u0ab5\u0acb \u0a9c\u0acb\u0a88\u0a8f.", "example_translit": "Rojbarojni bhaagdodmaanthi thodo samay potaana shaukh maate pan kaadhvo joie.", "example_en": "One should take out some time for their hobbies from the daily routine hustle.", "distractors": ["Once in a lifetime occurrence", "Annual ceremonial festivities", "Sudden and unexpected surprise"]}, {"id": "gu-4", "word": "Astitva", "script": "\u0a85\u0ab8\u0acd\u0aa4\u0abf\u0aa4\u0acd\u0ab5", "lang": "Gujarati", "category": "Gujarati", "meaning": "Existence, entity, being", "notes": "Denotes fundamental existence or identity. Semantic counterpart to Urdu 'Wajood' (\u0ab5\u0a9c\u0ac2\u0aa6 / \u0648\u062c\u0648\u062f).", "example_orig": "\u0aaa\u0acd\u0ab0\u0a95\u0ac3\u0aa4\u0abf\u0aa8\u0ac1\u0a82 \u0ab8\u0a82\u0aa4\u0ac1\u0ab2\u0aa8 \u0a9c\u0abe\u0ab3\u0ab5\u0ab5\u0ac1\u0a82 \u0aae\u0abe\u0aa8\u0ab5\u0a9c\u0abe\u0aa4\u0aa8\u0abe \u0a85\u0ab8\u0acd\u0aa4\u0abf\u0aa4\u0acd\u0ab5 \u0aae\u0abe\u0a9f\u0ac7 \u0a85\u0aa8\u0abf\u0ab5\u0abe\u0ab0\u0acd\u0aaf \u0a9b\u0ac7.", "example_translit": "Prakritinu santulan jaalavvu maanavjaatna astitva maate anivaarya chhe.", "example_en": "Maintaining nature's balance is essential for the existence of humankind.", "distractors": ["Complete destruction or void", "External illusion or mirage", "Physical strength and stamina"]}, {"id": "gu-5", "word": "Saatatya (Consistency)", "script": "\u0ab8\u0abe\u0aa4\u0aa4\u0acd\u0aaf", "lang": "Gujarati", "category": "Gujarati", "meaning": "Consistency, continuity, steadfastness", "notes": "Captured as 'Consistency' in notes. Expressed in Gujarati as \u0ab8\u0abe\u0aa4\u0aa4\u0acd\u0aaf (saatatya) or \u0a8f\u0a95\u0aa7\u0abe\u0ab0\u0abe\u0aaa\u0aa3\u0ac1\u0a82 (ekdhaarapanu).", "example_orig": "\u0a95\u0acb\u0a88\u0aaa\u0aa3 \u0aa8\u0ab5\u0ac0 \u0a95\u0ab3\u0abe \u0ab6\u0ac0\u0a96\u0ab5\u0abe \u0aae\u0abe\u0a9f\u0ac7 \u0a85\u0aad\u0acd\u0aaf\u0abe\u0ab8\u0aae\u0abe\u0a82 \u0ab8\u0abe\u0aa4\u0aa4\u0acd\u0aaf \u0ab9\u0acb\u0ab5\u0ac1\u0a82 \u0a96\u0ac2\u0aac \u0a9c\u0ab0\u0ac2\u0ab0\u0ac0 \u0a9b\u0ac7.", "example_translit": "Koipan navi kala sheekhva maate abhyaasma saatatya hovu khoob jaroori chhe.", "example_en": "To learn any new art, consistency in practice is very essential.", "distractors": ["Frequent interruption or hiatus", "Rigid stubbornness", "Impulsive haste"]}, {"id": "gu-6", "word": "Chinta / Nisbat (Concern)", "script": "\u0a9a\u0abf\u0a82\u0aa4\u0abe / \u0aa8\u0abf\u0ab8\u0acd\u0aac\u0aa4", "lang": "Gujarati", "category": "Gujarati", "meaning": "Concern, care, solicitude, anxious regard", "notes": "Added from Keep notes ('Concern'). In Gujarati, expressed as \u0a9a\u0abf\u0a82\u0aa4\u0abe (chinta), \u0aab\u0abf\u0a95\u0ab0 (fikar), or \u0aa8\u0abf\u0ab8\u0acd\u0aac\u0aa4 (nisbat - deep personal regard/caring).", "example_orig": "\u0aae\u0abf\u0aa4\u0acd\u0ab0\u0aa8\u0ac0 \u0aa4\u0aac\u0abf\u0aaf\u0aa4 \u0ab2\u0aa5\u0aa1\u0aa4\u0abe\u0a82 \u0aac\u0aa7\u0abe\u0aa8\u0abe \u0a9a\u0ab9\u0ac7\u0ab0\u0abe \u0aaa\u0ab0 \u0a9a\u0abf\u0a82\u0aa4\u0abe \u0a85\u0aa8\u0ac7 \u0aa8\u0abf\u0ab8\u0acd\u0aac\u0aa4 \u0ab8\u0acd\u0aaa\u0ab7\u0acd\u0a9f \u0aa6\u0ac7\u0a96\u0abe\u0aa4\u0ac0 \u0ab9\u0aa4\u0ac0.", "example_translit": "Mitrani tabiyat lathadta badhana chehra par chinta ane nisbat spasht dekhaati hati.", "example_en": "As their friend's health worsened, deep concern and care were clearly visible on everyone's faces.", "distractors": ["Complete apathy and indifference", "Unrestrained joy and celebration", "Reckless adventure and haste"]}, {"id": "gu-7", "word": "Jaagruti / Sabhaanata (Awareness)", "script": "\u0a9c\u0abe\u0a97\u0ac3\u0aa4\u0abf / \u0ab8\u0aad\u0abe\u0aa8\u0aa4\u0abe", "lang": "Gujarati", "category": "Gujarati", "meaning": "Awareness, consciousness, mindfulness, alertness", "notes": "Added from Keep notes ('Awareness'). In Gujarati, refers to social/public awakening (\u0a9c\u0abe\u0a97\u0ac3\u0aa4\u0abf) and personal mindfulness (\u0ab8\u0aad\u0abe\u0aa8\u0aa4\u0abe).", "example_orig": "\u0ab8\u0acd\u0ab5\u0a9a\u0acd\u0a9b\u0aa4\u0abe \u0a85\u0aa8\u0ac7 \u0a86\u0ab0\u0acb\u0a97\u0acd\u0aaf \u0aaa\u0acd\u0ab0\u0aa4\u0acd\u0aaf\u0ac7 \u0ab2\u0acb\u0a95\u0acb\u0aae\u0abe\u0a82 \u0ab8\u0aad\u0abe\u0aa8\u0aa4\u0abe \u0a85\u0aa8\u0ac7 \u0a9c\u0abe\u0a97\u0ac3\u0aa4\u0abf \u0ab5\u0aa7\u0abe\u0ab0\u0ab5\u0ac0 \u0a96\u0ac2\u0aac \u0a9c\u0ab0\u0ac2\u0ab0\u0ac0 \u0a9b\u0ac7.", "example_translit": "Swachhta ane aarogya pratye lokoma sabhaanata ane jaagruti vadhaarvi khoob jaroori chhe.", "example_en": "It is very important to raise consciousness and awareness among people regarding cleanliness and health.", "distractors": ["Deep ignorance and neglect", "Total physical exhaustion", "Sudden panic and delusion"]}, {"id": "hi-1", "word": "Hawala", "script": "\u0939\u0935\u093e\u0932\u093e / \u062d\u0648\u0627\u0644\u06c1", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Informal value transfer system, money laundering, or citation/reference", "notes": "Traditional trust-based remittance system; colloquially used in financial contexts and legal/literary citations ('hawaale se').", "example_orig": "\u0909\u0938\u0928\u0947 \u0905\u092a\u0928\u0940 \u0926\u0932\u0940\u0932 \u0915\u094b \u0938\u093e\u092c\u093f\u0924 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u0908 \u092a\u0941\u0930\u093e\u0928\u0940 \u0915\u093f\u0924\u093e\u092c\u094b\u0902 \u0915\u093e \u0939\u0935\u093e\u0932\u093e \u0926\u093f\u092f\u093e\u0964", "example_translit": "Usne apni daleel ko saabit karne ke liye kai puraani kitaabon ka hawala diya.", "example_en": "In order to prove his argument, he gave references to several ancient books.", "distractors": ["Government treasury bond or deposit", "Official extradition treaty", "Formal written apology"]}, {"id": "hi-2", "word": "Mukhauta", "script": "\u092e\u0941\u0916\u094c\u091f\u093e", "lang": "Hindi", "category": "Hindi & Urdu", "meaning": "Mask, facade, disguise", "notes": "A physical face covering or a metaphorical mask disguising one's real feelings or personality.", "example_orig": "\u0938\u092e\u093e\u091c \u092e\u0947\u0902 \u0915\u0908 \u0932\u094b\u0917 \u0905\u092a\u0928\u0940 \u0905\u0938\u0932\u093f\u092f\u0924 \u091b\u0941\u092a\u093e\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0936\u0930\u093e\u092b\u093c\u0924 \u0915\u093e \u092e\u0941\u0916\u094c\u091f\u093e \u092a\u0939\u0928\u0924\u0947 \u0939\u0948\u0902\u0964", "example_translit": "Samaaj mein kai log apni asliyat chhupaane ke liye sharaafat ka mukhauta pehante hain.", "example_en": "Many people in society wear a mask of decency to conceal their true reality.", "distractors": ["Ceremonial turban or headgear", "Heavy armor worn in battle", "Traditional embroidered scarf"]}, {"id": "hi-3", "word": "Naqab", "script": "\u0928\u0915\u093c\u093e\u092c / \u0646\u0642\u0627\u0628", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Veil or face covering for women; disguise", "notes": "Face-covering veil; metaphorically used in Urdu poetry to symbolize mystery, modesty, or concealment.", "example_orig": "\u0938\u091a\u094d\u091a\u093e\u0908 \u0938\u093e\u092e\u0928\u0947 \u0906\u0924\u0947 \u0939\u0940 \u091d\u0942\u0920\u0947 \u0935\u093e\u0926\u094b\u0902 \u0915\u093e \u0928\u0915\u093c\u093e\u092c \u0909\u0924\u0930 \u0917\u092f\u093e\u0964", "example_translit": "Sachhaai saamne aate hi jhoothe vaadon ka naqab utar gaya.", "example_en": "As soon as the truth came to light, the veil of false promises dropped.", "distractors": ["Silk ceremonial belt", "Beaded evening handbag", "Golden forehead ornament"]}, {"id": "hi-4", "word": "Gustaakh", "script": "\u0917\u0941\u0938\u094d\u0924\u093e\u0916\u093c / \u06af\u0633\u062a\u0627\u062e", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Insolent, disrespectful, audacious, impudent", "notes": "Related noun 'gustaakhi' (\u0917\u0941\u0938\u094d\u0924\u093e\u0916\u093c\u0940) means insolence or audacity (common phrase: 'gustaakhi maaf' = pardon my audacity).", "example_orig": "\u0917\u0941\u0938\u094d\u0924\u093e\u0916\u093c\u0940 \u092e\u093e\u092b\u093c \u0939\u0941\u091c\u093c\u0942\u0930, \u092a\u0930 \u0906\u092a\u0915\u093e \u092f\u0939 \u092b\u093c\u0948\u0938\u0932\u093e \u0939\u092e\u0947\u0902 \u092e\u0941\u0928\u093e\u0938\u093f\u092c \u0928\u0939\u0940\u0902 \u0932\u0917\u0924\u093e\u0964", "example_translit": "Gustaakhi maaf huzoor, par aapka yeh faisla humein munasib nahi lagta.", "example_en": "Pardon my impudence sir, but this decision of yours does not seem reasonable to us.", "distractors": ["Humble and subservient", "Generous and philanthropic", "Cautious and timid"]}, {"id": "hi-5", "word": "Shaad", "script": "\u0936\u093e\u0926 / \u0634\u0627\u062f", "lang": "Urdu", "category": "Hindi & Urdu", "meaning": "Happy, cheerful, delighted, joyful", "notes": "Opposite of naashaad (sorrowful). Frequently used in benedictions ('Shaad raho' = remain joyful and thriving).", "example_orig": "\u0939\u092e\u093e\u0930\u0940 \u092f\u0939\u0940 \u0926\u0941\u0906 \u0939\u0948 \u0915\u093f \u0906\u092a \u091c\u0939\u093e\u0901 \u092d\u0940 \u0930\u0939\u0947\u0902, \u0939\u092e\u0947\u0936\u093e \u0936\u093e\u0926 \u0914\u0930 \u0906\u092c\u093e\u0926 \u0930\u0939\u0947\u0902\u0964", "example_translit": "Hamaari yahi dua hai ki aap jahaan bhi rahein, hamesha shaad aur aabaad rahein.", "example_en": "Our heartfelt prayer is that wherever you reside, you remain happy and flourishing.", "distractors": ["Melancholy and heartbroken", "Perplexed and confused", "Envious and resentful"]}, {"id": "hi-6", "word": "Gair", "script": "\u0917\u093c\u0948\u0930 / \u063a\u06cc\u0631", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Outsider, stranger, non-relative ('mai koi gair toh nahi')", "notes": "Someone who is not one's own kin or close friend; foreign, alien, or unrelated.", "example_orig": "\u0906\u092a \u092c\u0947\u091d\u093f\u091d\u0915 \u0905\u092a\u0928\u0940 \u092c\u093e\u0924 \u0915\u0939\u093f\u090f, \u092f\u0939\u093e\u0901 \u0915\u094b\u0908 \u0917\u093c\u0948\u0930 \u0928\u0939\u0940\u0902 \u092c\u0948\u0920\u093e \u0939\u0948\u0964", "example_translit": "Aap be-jhi-jhak apni baat kahiye, yahaan koi gair nahi baitha hai.", "example_en": "Speak your heart without hesitation; there is no outsider seated here.", "distractors": ["Close blood relative", "Honored childhood mentor", "Lifelong trusted companion"]}, {"id": "hi-7", "word": "Mashroof", "script": "\u092e\u0936\u0930\u0942\u092b\u093c / \u0645\u0635\u0631\u0648\u0641", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Busy, occupied, absorbed in work", "notes": "Deeply engaged in tasks or daily business.", "example_orig": "\u0935\u0939 \u0938\u0941\u092c\u0939 \u0938\u0947 \u0939\u0940 \u0926\u092b\u093c\u094d\u0924\u0930 \u0915\u0940 \u0928\u0908 \u092b\u093c\u093e\u0907\u0932\u094b\u0902 \u0915\u094b \u0938\u0941\u0932\u091d\u093e\u0928\u0947 \u092e\u0947\u0902 \u092e\u0936\u0930\u0942\u092b\u093c \u0925\u093e\u0964", "example_translit": "Vah subah se hi daftar ki nayi failon ko suljhane mein mashroof tha.", "example_en": "He was absorbed in organizing the new office files since morning.", "distractors": ["Idle, leisurely, and bored", "Exhausted and asleep", "Unemployed and wandering"]}, {"id": "hi-8", "word": "Mehrum (Mahroom)", "script": "\u092e\u0939\u0930\u0942\u092e / \u0645\u062d\u0631\u0648\u0645", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Deprived of, bereft, excluded from something desirable", "notes": "Having been denied or kept away from a rightful joy, blessing, or resource.", "example_orig": "\u0938\u0941\u0935\u093f\u0927\u093e\u0913\u0902 \u0915\u0940 \u0915\u092e\u0940 \u0915\u0947 \u0915\u093e\u0930\u0923 \u0915\u0908 \u092c\u091a\u094d\u091a\u0947 \u092c\u0941\u0928\u093f\u092f\u093e\u0926\u0940 \u0936\u093f\u0915\u094d\u0937\u093e \u0938\u0947 \u092e\u0939\u0930\u0942\u092e \u0930\u0939 \u091c\u093e\u0924\u0947 \u0939\u0948\u0902\u0964", "example_translit": "Suvidhaon ki kami ke kaaran kai bachhe buniyaadi shiksha se mehrum reh jaate hain.", "example_en": "Due to lack of facilities, many children remain deprived of basic education.", "distractors": ["Bountifully blessed and rewarded", "Overburdened with wealth", "Fully satisfied and satiated"]}, {"id": "hi-9", "word": "Ilm", "script": "\u0907\u0932\u094d\u092e / \u0639\u0644\u0645", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Knowledge, learning, science, wisdom", "notes": "Deep intellectual or spiritual understanding; the pursuit of truth.", "example_orig": "\u0907\u0932\u094d\u092e \u090f\u0915 \u0910\u0938\u0940 \u0926\u094c\u0932\u0924 \u0939\u0948 \u091c\u093f\u0938\u0947 \u092c\u093e\u0901\u091f\u0928\u0947 \u0938\u0947 \u0935\u0939 \u0918\u091f\u0924\u0940 \u0928\u0939\u0940\u0902, \u092c\u0932\u094d\u0915\u093f \u092c\u0922\u093c\u0924\u0940 \u0939\u0948\u0964", "example_translit": "Ilm ek aisi daulat hai jise baantne se vah ghatti nahi, balki badhti hai.", "example_en": "Knowledge is a wealth that never diminishes upon being shared, but only increases.", "distractors": ["Superstition and blind faith", "Fleeting physical wealth", "Vanity and boastfulness"]}, {"id": "hi-10", "word": "Numaish", "script": "\u0928\u0941\u092e\u093e\u0907\u0936 / \u0646\u0645\u0627\u0626\u0634", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Exhibition, public display, ostentation", "notes": "A public exhibition or show; in poetry, often describes an ostentatious display of beauty, wealth, or sorrow.", "example_orig": "\u0938\u093e\u0926\u0917\u0940 \u092a\u0938\u0902\u0926 \u0932\u094b\u0917\u094b\u0902 \u0915\u094b \u0905\u092a\u0928\u0940 \u0926\u094c\u0932\u0924 \u0915\u0940 \u0928\u0941\u092e\u093e\u0907\u0936 \u0915\u0930\u0928\u093e \u0917\u0935\u093e\u0930\u093e \u0928\u0939\u0940\u0902 \u0939\u094b\u0924\u093e\u0964", "example_translit": "Saadgi pasand logon ko apni daulat ki numaish karna gawaara nahi hota.", "example_en": "People who value simplicity dislike making an ostentatious show of their wealth.", "distractors": ["Quiet and solitary meditation", "Strict financial austerity", "Secret, hidden treasure"]}, {"id": "hi-11", "word": "Panah", "script": "\u092a\u0928\u093e\u0939 / \u067e\u0646\u0627\u06c1", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Refuge, shelter, asylum, protection", "notes": "Sanctuary or protective harbor ('panah maangna' = to plead for shelter/mercy).", "example_orig": "\u0924\u0942\u092b\u093c\u093e\u0928\u0940 \u092c\u093e\u0930\u093f\u0936 \u092e\u0947\u0902 \u092e\u0941\u0938\u093e\u092b\u093c\u093f\u0930\u094b\u0902 \u0928\u0947 \u090f\u0915 \u092a\u0941\u0930\u093e\u0928\u0947 \u092e\u0902\u0926\u093f\u0930 \u0915\u0947 \u092c\u0930\u093e\u092e\u0926\u0947 \u092e\u0947\u0902 \u092a\u0928\u093e\u0939 \u0932\u0940\u0964", "example_translit": "Toofaani baarish mein musaafiron ne ek puraane mandir ke baraamde mein panah li.", "example_en": "During the torrential storm, travelers took refuge under the veranda of an old temple.", "distractors": ["Open, unprotected battlefield", "Exile or banishment", "Aggressive counter-attack"]}, {"id": "hi-12", "word": "Betaab", "script": "\u092c\u0947\u0924\u093e\u092c / \u0628\u06cc\u062a\u0627\u0628", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Restless, eager, impatient, anxious with longing", "notes": "Literally lacking 'taab' (endurance/restraint) due to passionate eagerness or anticipation.", "example_orig": "\u092c\u0930\u0938\u094b\u0902 \u092c\u093e\u0926 \u0905\u092a\u0928\u0947 \u0935\u0924\u0928 \u0932\u094c\u091f\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0909\u0938\u0915\u093e \u0926\u093f\u0932 \u092c\u0947\u0924\u093e\u092c \u0925\u093e\u0964", "example_translit": "Barson baad apne watan lautne ke liye uska dil betaab tha.", "example_en": "His heart was restless and intensely eager to return to his homeland after years.", "distractors": ["Composed, calm, and indifferent", "Indifferent and unbothered", "Sleepy and lethargic"]}, {"id": "hi-13", "word": "Balaye lena", "script": "\u092c\u0932\u093e\u092f\u0947\u0902 \u0932\u0947\u0928\u093e / \u0628\u0644\u0627\u0626\u06cc\u06ba \u0932\u0947\u0928\u093e", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Affectionate ritual gesture to ward off evil and take on someone's misfortunes", "notes": "An affectionate cultural expression\u2014most commonly practiced by women and elders in South Asia\u2014where someone circles hands over another's head and cracks knuckles against their own temples to symbolically take on their grief, misfortunes, or evil eye.", "example_orig": "\u091c\u092c \u092c\u0947\u091f\u093e \u092a\u0939\u0932\u0940 \u0928\u094c\u0915\u0930\u0940 \u092a\u093e\u0915\u0930 \u0932\u094c\u091f\u093e, \u0924\u094b \u092e\u093e\u0901 \u0928\u0947 \u0928\u092e \u0906\u0901\u0916\u094b\u0902 \u0938\u0947 \u0909\u0938\u0915\u0940 \u092c\u0932\u093e\u092f\u0947\u0902 \u0932\u0940\u0902\u0964", "example_translit": "Jab beta pehli naukri paakar lauta, toh maa ne nam aankhon se uski balaye leen.", "example_en": "When the son returned with his first job, the mother affectionately cracked her knuckles over him to ward off all misfortunes.", "distractors": ["Formal handshake during a business agreement", "Chanting protective hymns before battle", "Lighting oil lamps in an evening prayer"]}, {"id": "hi-14", "word": "Kimam (Qiwam)", "script": "\u0915\u093c\u093f\u0935\u093e\u092e / \u0642\u0648\u0627\u0645", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Thick, highly concentrated aromatic paste used in Indian paan", "notes": "A thick, highly concentrated aromatic liquid or paste traditionally used as a key flavoring ingredient in Indian paan (betel quid) and pan masala.", "example_orig": "\u092c\u0928\u093e\u0930\u0938\u0940 \u092e\u0940\u0920\u0947 \u092a\u093e\u0928 \u092e\u0947\u0902 \u091c\u093c\u093e\u092f\u0915\u093e \u0914\u0930 \u092e\u0939\u0915 \u0932\u093e\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0916\u093c\u093e\u0938 \u0915\u093c\u093f\u0935\u093e\u092e \u0921\u093e\u0932\u093e \u091c\u093e\u0924\u093e \u0939\u0948\u0964", "example_translit": "Banaarasi meethe paan mein zaayka aur mehak laane ke liye khaas kimam daala jaata hai.", "example_en": "Special aromatic kimam paste is added to Banarasi sweet paan to impart distinctive fragrance and rich taste.", "distractors": ["Spicy mango pickle marinade", "Powdered dry ginger tonic", "Rosewater-scented cooling syrup"]}, {"id": "hi-15", "word": "Kajra", "script": "\u0915\u091c\u0930\u093e / \u06a9\u091c\u0930\u093e", "lang": "Hindi / Urdu", "category": "Hindi & Urdu", "meaning": "Kohl, black eyeliner, kajal", "notes": "Traditional natural eye cosmetic made of soot, celebrated across North Indian poetry, music, and romance.", "example_orig": "\u0906\u0901\u0916\u094b\u0902 \u092e\u0947\u0902 \u0917\u0939\u0930\u093e \u0915\u091c\u0930\u093e \u0932\u0917\u093e\u090f \u0935\u0939 \u092a\u093e\u0930\u0902\u092a\u0930\u093f\u0915 \u092a\u0930\u093f\u0927\u093e\u0928 \u092e\u0947\u0902 \u092c\u0947\u0939\u0926 \u0916\u0942\u092c\u0938\u0942\u0930\u0924 \u0932\u0917 \u0930\u0939\u0940 \u0925\u0940\u0964", "example_translit": "Aankhon mein gehra kajra lagaaye vah paaramparik paridhaan mein behad khoobsurat lag rahi thi.", "example_en": "Wearing deep dark kohl in her eyes, she looked mesmerizing in her traditional dress.", "distractors": ["Sandalwood paste applied to the forehead", "Henna paste decorating the palms", "Red vermilion powder in hair parting"]}, {"id": "hi-16", "word": "Khamma ghani", "script": "\u0916\u092e\u094d\u092e\u093e \u0918\u0923\u0940", "lang": "Rajasthani / Hindi", "category": "Hindi & Urdu", "meaning": "Warm royal greeting: 'Many greetings' or 'May you be blessed'", "notes": "Respectful traditional greeting originating in Rajasthan, wishing prosperity, protection from harm, and endless goodwill.", "example_orig": "\u0930\u093e\u091c\u0938\u094d\u0925\u093e\u0928 \u0915\u0947 \u092e\u0939\u0932 \u092e\u0947\u0902 \u092a\u0939\u0941\u0901\u091a\u0924\u0947 \u0939\u0940 \u0926\u094d\u0935\u093e\u0930\u092a\u093e\u0932 \u0928\u0947 \u0939\u093e\u0925 \u091c\u094b\u0921\u093c\u0915\u0930 '\u0916\u092e\u094d\u092e\u093e \u0918\u0923\u0940 \u0938\u093e' \u0915\u0939\u093e\u0964", "example_translit": "Rajasthan ke mehal mein pahunchte hi dvaarpaal ne haath jodkar 'Khamma ghani sa' kaha.", "example_en": "As we entered the palace in Rajasthan, the doorkeeper folded his hands and greeted us with 'Khamma ghani sa'.", "distractors": ["Farewell wish for safe travels", "Royal proclamation of war", "Expression of deep condolences"]}, {"id": "hi-17", "word": "Prateek", "script": "\u092a\u094d\u0930\u0924\u0940\u0915", "lang": "Hindi", "category": "Hindi & Urdu", "meaning": "Symbol, sign, token, emblem", "notes": "Something that stands as a representation of a concept, philosophical idea, or entity.", "example_orig": "\u0938\u092b\u093c\u0947\u0926 \u0915\u092c\u0942\u0924\u0930 \u0915\u094b \u0938\u0926\u093f\u092f\u094b\u0902 \u0938\u0947 \u0905\u092e\u0928 \u0914\u0930 \u0936\u093e\u0902\u0924\u093f \u0915\u093e \u092a\u094d\u0930\u0924\u0940\u0915 \u092e\u093e\u0928\u093e \u091c\u093e\u0924\u093e \u0939\u0948\u0964", "example_translit": "Safed kabootar ko sadiyon se aman aur shaanti ka prateek maana jaata hai.", "example_en": "The white dove has been regarded as a symbol of peace and harmony for centuries.", "distractors": ["Ancient historical manuscript", "Statue carved out of single marble stone", "Sacred ritual vow"]}, {"id": "hi-18", "word": "Rukh", "script": "\u0930\u0941\u0916\u093c / \u0631\u062e", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Direction, stance, trend; face or cheek", "notes": "Dual poetic and physical meaning: the direction the wind blows ('hawa ka rukh'), an attitude/stance, or a beloved's face/countenance.", "example_orig": "\u0939\u0935\u093e \u0915\u093e \u0930\u0941\u0916\u093c \u092c\u0926\u0932\u0924\u0947 \u0939\u0940 \u0906\u0938\u092e\u093e\u0928 \u092e\u0947\u0902 \u0918\u0928\u0947 \u0915\u093e\u0932\u0947 \u092c\u093e\u0926\u0932 \u091b\u093e\u0928\u0947 \u0932\u0917\u0947\u0964", "example_translit": "Hawa ka rukh badalte hi aasmaan mein ghane kaale baadal chhaane lage.", "example_en": "As soon as the wind's direction shifted, heavy dark clouds blanketed the sky.", "distractors": ["Sudden sharp lightning bolt", "Footstep mark on sandy path", "Echo bouncing from distant hills"]}, {"id": "hi-19", "word": "Wajood", "script": "\u0935\u091c\u0942\u0926 / \u0648\u062c\u0648\u062f", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Existence, entity, identity, being (astitva)", "notes": "Essential being or existence. Direct semantic counterpart to Gujarati 'Astitva' (\u0a85\u0ab8\u0acd\u0aa4\u0abf\u0aa4\u0acd\u0ab5).", "example_orig": "\u0905\u092a\u0928\u0940 \u092a\u0939\u091a\u093e\u0928 \u0914\u0930 \u0935\u091c\u0942\u0926 \u0915\u094b \u092c\u0928\u093e\u090f \u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0907\u0902\u0938\u093e\u0928 \u0915\u094b \u0939\u0930 \u0930\u094b\u091c\u093c \u0938\u0902\u0918\u0930\u094d\u0937 \u0915\u0930\u0928\u093e \u092a\u0921\u093c\u0924\u093e \u0939\u0948\u0964", "example_translit": "Apni pehchaan aur wajood ko banaaye rakhne ke liye insaan ko har roz sangharsh karna padta hai.", "example_en": "To uphold one's identity and existence, a person has to strive every single day.", "distractors": ["Transient physical reputation", "Ancestral inheritance and property", "Mundane worldly vanity"]}, {"id": "hi-20", "word": "Dilkash", "script": "\u0926\u093f\u0932\u0915\u0936 / \u062f\u0644\u06a9\u0634", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Alluring, captivating, enchanting, heart-ravishing", "notes": "Added from Keep notes ('Dilkash: alluring, captivating'). Compound of 'Dil' (heart) + 'Kash' (attracting/drawing). Common in Urdu poetry.", "example_orig": "\u0935\u093e\u0926\u093f\u092f\u094b\u0902 \u092e\u0947\u0902 \u0936\u093e\u092e \u0915\u093e \u0922\u0932\u0924\u093e \u0938\u0942\u0930\u091c \u092c\u0947\u0939\u0926 \u0926\u093f\u0932\u0915\u0936 \u092e\u0902\u091c\u093c\u0930 \u092a\u0947\u0936 \u0915\u0930 \u0930\u0939\u093e \u0925\u093e\u0964", "example_translit": "Waadiyon mein shaam ka dhalta sooraj behad dilkash manzar pesh kar raha tha.", "example_en": "The setting evening sun in the valleys presented a truly captivating spectacle.", "distractors": ["Harsh, unpleasant, and grating", "Ancient, forgotten, and dusty", "Rigid and strictly disciplined"]}, {"id": "hi-21", "word": "Nazakat", "script": "\u0928\u091c\u093c\u093e\u0915\u0924 / \u0646\u0632\u0627\u06a9\u062a", "lang": "Urdu / Hindi", "category": "Hindi & Urdu", "meaning": "Elegance, delicacy, gracefulness, finesse", "notes": "Added from Keep notes ('Nazakat: elegance, gracefulness'). Represents subtle grace and cultural refinement.", "example_orig": "\u0909\u0928\u0915\u0947 \u092c\u093e\u0924 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0905\u0902\u0926\u093e\u091c\u093c \u092e\u0947\u0902 \u090f\u0915 \u0916\u093c\u093e\u0938 \u0928\u091c\u093c\u093e\u0915\u0924 \u0914\u0930 \u0924\u0939\u091c\u093c\u0940\u092c \u091d\u0932\u0915\u0924\u0940 \u0925\u0940\u0964", "example_translit": "Unke baat karne ke andaaz mein ek khaas nazakat aur tehzeeb jhalakti thi.", "example_en": "A distinct elegance and refined etiquette shone through her manner of speaking.", "distractors": ["Clumsiness, roughness, and haste", "Boastful pride and aggression", "Bitter sarcasm and mockery"]}];
+
+    // Application State
+    let customWords = [];
+    try {
+      const savedCustom = localStorage.getItem('user_custom_vocab_words');
+      if (savedCustom) {
+        customWords = JSON.parse(savedCustom);
+      }
+    } catch(e) {}
+
+    let WORDS = [...DEFAULT_WORDS, ...customWords];
+    let activeFilter = 'all';
+    let filteredWords = [...WORDS];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let starredIds = new Set();
+
+    // Quiz State
+    let quizLength = 5;
+    let quizLangFocus = 'both'; // 'both', 'hindi', 'gujarati'
+    let quizQuestions = [];
+    let currentQuizIndex = 0;
+    let quizScore = 0;
+    let answerSubmitted = false;
+
+    // Load starred from localStorage with safety try/catch
+    try {
+      const saved = localStorage.getItem('starred_vocab_ids');
+      if (saved) {
+        starredIds = new Set(JSON.parse(saved));
+      }
+    } catch (e) {}
+
+    // DOM Elements
+    const tabFlashcards = document.getElementById('tab-flashcards');
+    const tabQuiz = document.getElementById('tab-quiz');
+    const tabBrowse = document.getElementById('tab-browse');
+
+    const viewFlashcards = document.getElementById('view-flashcards');
+    const viewQuiz = document.getElementById('view-quiz');
+    const viewBrowse = document.getElementById('view-browse');
+
+    // Navigation Switcher
+    function switchTab(tab) {
+      [tabFlashcards, tabQuiz, tabBrowse].forEach(t => {
+        t.className = 'px-3 py-1.5 rounded-lg transition-colors text-slate-600 hover:text-slate-900';
+      });
+      [viewFlashcards, viewQuiz, viewBrowse].forEach(v => v.classList.add('hidden'));
+
+      if (tab === 'flashcards') {
+        tabFlashcards.className = 'px-3 py-1.5 rounded-lg transition-colors bg-white text-indigo-700 shadow-sm font-semibold';
+        viewFlashcards.classList.remove('hidden');
+      } else if (tab === 'quiz') {
+        tabQuiz.className = 'px-3 py-1.5 rounded-lg transition-colors bg-white text-indigo-700 shadow-sm font-semibold';
+        viewQuiz.classList.remove('hidden');
+      } else if (tab === 'browse') {
+        tabBrowse.className = 'px-3 py-1.5 rounded-lg transition-colors bg-white text-indigo-700 shadow-sm font-semibold';
+        viewBrowse.classList.remove('hidden');
+        renderBrowseTable();
+      }
+    }
+
+    tabFlashcards.addEventListener('click', () => switchTab('flashcards'));
+    tabQuiz.addEventListener('click', () => switchTab('quiz'));
+    tabBrowse.addEventListener('click', () => switchTab('browse'));
+
+    // Update Counts in UI
+    function refreshCounts() {
+      const guj = WORDS.filter(w => w.category === 'Gujarati').length;
+      const hin = WORDS.filter(w => w.category === 'Hindi & Urdu').length;
+      document.getElementById('total-words-nav').textContent = WORDS.length;
+      document.getElementById('count-all').textContent = WORDS.length;
+      document.getElementById('count-gujarati').textContent = guj;
+      document.getElementById('count-hindi').textContent = hin;
+    }
+
+    // Flashcard Render
+    function updateCardUI() {
+      refreshCounts();
+      if (filteredWords.length === 0) {
+        document.getElementById('card-counter').textContent = '0 of 0';
+        document.getElementById('card-script').textContent = 'No words found';
+        document.getElementById('card-word').textContent = 'Try choosing a different filter';
+        document.getElementById('card-meaning').textContent = 'No cards to show';
+        document.getElementById('card-notes').textContent = '';
+        document.getElementById('card-example-orig').textContent = '';
+        document.getElementById('card-example-translit').textContent = '';
+        document.getElementById('card-example-en').textContent = '';
+        return;
+      }
+
+      if (currentIndex >= filteredWords.length) currentIndex = 0;
+      if (currentIndex < 0) currentIndex = filteredWords.length - 1;
+
+      const item = filteredWords[currentIndex];
+      
+      // Reset flip
+      isFlipped = false;
+      document.getElementById('flashcard-inner').classList.remove('flipped');
+
+      document.getElementById('card-counter').textContent = `Card ${currentIndex + 1} of ${filteredWords.length}`;
+      document.getElementById('card-progress').style.width = `${((currentIndex + 1) / filteredWords.length) * 100}%`;
+      
+      document.getElementById('card-badge').textContent = item.lang;
+      document.getElementById('card-script').textContent = item.script;
+      document.getElementById('card-word').textContent = item.word;
+
+      // Font styling for scripts
+      if (item.category === 'Gujarati') {
+        document.getElementById('card-script').className = 'text-4xl sm:text-5xl font-bold text-slate-900 tracking-wide mb-3 gujarati';
+        document.getElementById('back-script').className = 'gujarati font-semibold';
+        document.getElementById('card-example-orig').className = 'text-sm font-semibold text-white leading-relaxed mb-1 gujarati';
+      } else {
+        document.getElementById('card-script').className = 'text-4xl sm:text-5xl font-bold text-slate-900 tracking-wide mb-3 devanagari';
+        document.getElementById('back-script').className = 'devanagari font-semibold';
+        document.getElementById('card-example-orig').className = 'text-sm font-semibold text-white leading-relaxed mb-1 devanagari';
+      }
+
+      document.getElementById('card-meaning').textContent = item.meaning;
+      document.getElementById('card-notes').textContent = item.notes;
+      document.getElementById('card-example-orig').textContent = item.example_orig || '';
+      document.getElementById('card-example-translit').textContent = item.example_translit || '';
+      document.getElementById('card-example-en').textContent = item.example_en ? `"${item.example_en}"` : '';
+
+      document.getElementById('back-word').textContent = item.word;
+      document.getElementById('back-script').textContent = item.script;
+      document.getElementById('back-badge').textContent = `${item.lang} — Definition & Example`;
+
+      // Update Star Icon
+      const isStarred = starredIds.has(item.id);
+      const starIcon = document.getElementById('star-icon');
+      if (isStarred) {
+        starIcon.classList.add('text-amber-400');
+        starIcon.classList.remove('text-slate-300');
+      } else {
+        starIcon.classList.remove('text-amber-400');
+        starIcon.classList.add('text-slate-300');
+      }
+
+      document.getElementById('starred-count').textContent = starredIds.size;
+    }
+
+    function flipCard() {
+      if (filteredWords.length === 0) return;
+      isFlipped = !isFlipped;
+      document.getElementById('flashcard-inner').classList.toggle('flipped', isFlipped);
+    }
+
+    document.getElementById('flashcard-container').addEventListener('click', (e) => {
+      if (e.target.closest('#btn-star')) return;
+      flipCard();
+    });
+
+    document.getElementById('btn-flip').addEventListener('click', flipCard);
+
+    document.getElementById('btn-next').addEventListener('click', () => {
+      if (filteredWords.length === 0) return;
+      currentIndex = (currentIndex + 1) % filteredWords.length;
+      updateCardUI();
+    });
+
+    document.getElementById('btn-prev').addEventListener('click', () => {
+      if (filteredWords.length === 0) return;
+      currentIndex = (currentIndex - 1 + filteredWords.length) % filteredWords.length;
+      updateCardUI();
+    });
+
+    // Star / Bookmark toggle
+    document.getElementById('btn-star').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (filteredWords.length === 0) return;
+      const cur = filteredWords[currentIndex];
+      if (starredIds.has(cur.id)) {
+        starredIds.delete(cur.id);
+      } else {
+        starredIds.add(cur.id);
+      }
+      try {
+        localStorage.setItem('starred_vocab_ids', JSON.stringify([...starredIds]));
+      } catch (err) {}
+      updateCardUI();
+    });
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (viewFlashcards.classList.contains('hidden')) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        flipCard();
+      } else if (e.code === 'ArrowRight') {
+        currentIndex = (currentIndex + 1) % filteredWords.length;
+        updateCardUI();
+      } else if (e.code === 'ArrowLeft') {
+        currentIndex = (currentIndex - 1 + filteredWords.length) % filteredWords.length;
+        updateCardUI();
+      }
+    });
+
+    // Filters
+    function applyFilter(filterName) {
+      activeFilter = filterName;
+      const buttons = {
+        'all': document.getElementById('filter-all'),
+        'gujarati': document.getElementById('filter-gujarati'),
+        'hindi': document.getElementById('filter-hindi'),
+        'starred': document.getElementById('filter-starred')
+      };
+
+      Object.values(buttons).forEach(b => {
+        b.className = 'px-3 py-1 text-xs font-medium rounded-full transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200 border border-transparent';
+      });
+
+      buttons[filterName].className = 'px-3 py-1 text-xs font-semibold rounded-full transition-colors bg-indigo-50 text-indigo-700 border border-indigo-200';
+
+      if (filterName === 'all') {
+        filteredWords = [...WORDS];
+      } else if (filterName === 'gujarati') {
+        filteredWords = WORDS.filter(w => w.category === 'Gujarati');
+      } else if (filterName === 'hindi') {
+        filteredWords = WORDS.filter(w => w.category === 'Hindi & Urdu');
+      } else if (filterName === 'starred') {
+        filteredWords = WORDS.filter(w => starredIds.has(w.id));
+      }
+
+      currentIndex = 0;
+      updateCardUI();
+    }
+
+    document.getElementById('filter-all').addEventListener('click', () => applyFilter('all'));
+    document.getElementById('filter-gujarati').addEventListener('click', () => applyFilter('gujarati'));
+    document.getElementById('filter-hindi').addEventListener('click', () => applyFilter('hindi'));
+    document.getElementById('filter-starred').addEventListener('click', () => applyFilter('starred'));
+
+    // Shuffle
+    document.getElementById('btn-shuffle').addEventListener('click', () => {
+      for (let i = filteredWords.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [filteredWords[i], filteredWords[j]] = [filteredWords[j], filteredWords[i]];
+      }
+      currentIndex = 0;
+      updateCardUI();
+    });
+
+    // CSV / Anki Exporter with Examples
+    document.getElementById('btn-export-csv').addEventListener('click', () => {
+      let csvContent = "Word,Script,Language,Meaning,Example_Sentence,English_Translation,Notes\n";
+      WORDS.forEach(w => {
+        const row = [
+          `"${w.word.replace(/"/g, '""')}"`,
+          `"${w.script.replace(/"/g, '""')}"`,
+          `"${w.lang.replace(/"/g, '""')}"`,
+          `"${w.meaning.replace(/"/g, '""')}"`,
+          `"${(w.example_orig || '').replace(/"/g, '""')} (${(w.example_translit || '').replace(/"/g, '""')})"`,
+          `"${(w.example_en || '').replace(/"/g, '""')}"`,
+          `"${(w.notes || '').replace(/"/g, '""')}"`
+        ];
+        csvContent += row.join(",") + "\n";
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "vocab_flashcards_with_examples.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // ==========================================
+    // SYNC & QUICK ADD MODAL LOGIC
+    // ==========================================
+    const syncModalBackdrop = document.getElementById('sync-modal-backdrop');
+    const btnSyncModal = document.getElementById('btn-sync-modal');
+    const btnCloseSyncModal = document.getElementById('btn-close-sync-modal');
+    const modalTabInstant = document.getElementById('modal-tab-instant');
+    const modalTabAi = document.getElementById('modal-tab-ai');
+    const modalViewInstant = document.getElementById('modal-view-instant');
+    const modalViewAi = document.getElementById('modal-view-ai');
+
+    btnSyncModal.addEventListener('click', () => {
+      syncModalBackdrop.classList.remove('hidden');
+    });
+
+    btnCloseSyncModal.addEventListener('click', () => {
+      syncModalBackdrop.classList.add('hidden');
+    });
+
+    syncModalBackdrop.addEventListener('click', (e) => {
+      if (e.target === syncModalBackdrop) syncModalBackdrop.classList.add('hidden');
+    });
+
+    modalTabInstant.addEventListener('click', () => {
+      modalTabInstant.className = 'flex-1 py-1.5 rounded-lg transition-colors bg-white text-indigo-700 shadow-sm font-semibold';
+      modalTabAi.className = 'flex-1 py-1.5 rounded-lg transition-colors text-slate-600 hover:text-slate-900';
+      modalViewInstant.classList.remove('hidden');
+      modalViewAi.classList.add('hidden');
+    });
+
+    modalTabAi.addEventListener('click', () => {
+      modalTabAi.className = 'flex-1 py-1.5 rounded-lg transition-colors bg-white text-indigo-700 shadow-sm font-semibold';
+      modalTabInstant.className = 'flex-1 py-1.5 rounded-lg transition-colors text-slate-600 hover:text-slate-900';
+      modalViewAi.classList.remove('hidden');
+      modalViewInstant.classList.add('hidden');
+    });
+
+    document.getElementById('btn-save-instant-word').addEventListener('click', () => {
+      const term = document.getElementById('input-word-term').value.trim();
+      const meaning = document.getElementById('input-word-meaning').value.trim();
+      const lang = document.getElementById('input-word-lang').value;
+      const example = document.getElementById('input-word-example').value.trim();
+
+      if (!term || !meaning) {
+        return; // require at least term and meaning
+      }
+
+      const newId = 'custom-' + Date.now();
+      const newEntry = {
+        id: newId,
+        word: term,
+        script: term,
+        lang: lang,
+        category: lang,
+        meaning: meaning,
+        notes: "Manually added word",
+        example_orig: example || "N/A",
+        example_translit: "",
+        example_en: example || "N/A",
+        distractors: [
+          "Alternative meaning 1",
+          "Alternative meaning 2",
+          "Alternative meaning 3"
+        ]
+      };
+
+      customWords.push(newEntry);
+      try {
+        localStorage.setItem('user_custom_vocab_words', JSON.stringify(customWords));
+      } catch(e) {}
+
+      WORDS.push(newEntry);
+      applyFilter(activeFilter);
+      syncModalBackdrop.classList.add('hidden');
+
+      // Clear inputs
+      document.getElementById('input-word-term').value = '';
+      document.getElementById('input-word-meaning').value = '';
+      document.getElementById('input-word-example').value = '';
+    });
+
+    // ==========================================
+    // QUIZ LOGIC WITH LANGUAGE ISOLATION & BELIEVABLE OPTIONS
+    // ==========================================
+    const optLen5 = document.getElementById('opt-len-5');
+    const optLen10 = document.getElementById('opt-len-10');
+
+    optLen5.addEventListener('click', () => {
+      quizLength = 5;
+      optLen5.className = 'px-5 py-2 rounded-lg font-semibold text-sm transition-colors bg-white text-indigo-700 shadow-sm';
+      optLen10.className = 'px-5 py-2 rounded-lg font-medium text-sm transition-colors text-slate-600 hover:text-slate-900';
+    });
+
+    optLen10.addEventListener('click', () => {
+      quizLength = 10;
+      optLen10.className = 'px-5 py-2 rounded-lg font-semibold text-sm transition-colors bg-white text-indigo-700 shadow-sm';
+      optLen5.className = 'px-5 py-2 rounded-lg font-medium text-sm transition-colors text-slate-600 hover:text-slate-900';
+    });
+
+    const optLangBoth = document.getElementById('opt-lang-both');
+    const optLangHindi = document.getElementById('opt-lang-hindi');
+    const optLangGujarati = document.getElementById('opt-lang-gujarati');
+
+    function setQuizLangFocus(focus) {
+      quizLangFocus = focus;
+      [optLangBoth, optLangHindi, optLangGujarati].forEach(b => {
+        b.className = 'px-3.5 py-1.5 rounded-lg font-medium transition-colors text-slate-600 hover:text-slate-900';
+      });
+      if (focus === 'both') {
+        optLangBoth.className = 'px-3.5 py-1.5 rounded-lg font-semibold transition-colors bg-white text-indigo-700 shadow-sm';
+      } else if (focus === 'hindi') {
+        optLangHindi.className = 'px-3.5 py-1.5 rounded-lg font-semibold transition-colors bg-white text-indigo-700 shadow-sm';
+      } else if (focus === 'gujarati') {
+        optLangGujarati.className = 'px-3.5 py-1.5 rounded-lg font-semibold transition-colors bg-white text-indigo-700 shadow-sm';
+      }
+    }
+
+    optLangBoth.addEventListener('click', () => setQuizLangFocus('both'));
+    optLangHindi.addEventListener('click', () => setQuizLangFocus('hindi'));
+    optLangGujarati.addEventListener('click', () => setQuizLangFocus('gujarati'));
+
+    function generateQuiz() {
+      let pool = [...WORDS];
+      if (quizLangFocus === 'hindi') {
+        pool = WORDS.filter(w => w.category === 'Hindi & Urdu');
+      } else if (quizLangFocus === 'gujarati') {
+        pool = WORDS.filter(w => w.category === 'Gujarati');
+      }
+
+      // Shuffle pool
+      const shuffled = pool.sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, Math.min(quizLength, shuffled.length));
+
+      quizQuestions = selected.map(target => {
+        const curatedDistractors = (target.distractors || []).slice(0, 3);
+        const options = [...curatedDistractors, target.meaning].sort(() => 0.5 - Math.random());
+
+        return {
+          word: target.word,
+          script: target.script,
+          lang: target.lang,
+          category: target.category,
+          correctMeaning: target.meaning,
+          notes: target.notes,
+          example_orig: target.example_orig,
+          example_en: target.example_en,
+          options: options
+        };
+      });
+
+      currentQuizIndex = 0;
+      quizScore = 0;
+      answerSubmitted = false;
+
+      document.getElementById('quiz-setup').classList.add('hidden');
+      document.getElementById('quiz-finished').classList.add('hidden');
+      document.getElementById('quiz-active').classList.remove('hidden');
+
+      renderQuizQuestion();
+    }
+
+    document.getElementById('btn-start-quiz').addEventListener('click', generateQuiz);
+    document.getElementById('btn-quiz-restart').addEventListener('click', generateQuiz);
+    document.getElementById('btn-quiz-to-flashcards').addEventListener('click', () => switchTab('flashcards'));
+
+    function renderQuizQuestion() {
+      answerSubmitted = false;
+      const q = quizQuestions[currentQuizIndex];
+
+      document.getElementById('quiz-question-number').textContent = `Question ${currentQuizIndex + 1} of ${quizQuestions.length}`;
+      document.getElementById('quiz-score-live').textContent = `Score: ${quizScore}`;
+      document.getElementById('quiz-progress-bar').style.width = `${((currentQuizIndex) / quizQuestions.length) * 100}%`;
+
+      document.getElementById('quiz-q-badge').textContent = `${q.lang} — Believable Options`;
+      document.getElementById('quiz-q-script').textContent = q.script;
+      document.getElementById('quiz-q-word').textContent = q.word;
+
+      if (q.category === 'Gujarati') {
+        document.getElementById('quiz-q-script').className = 'text-3xl sm:text-4xl font-bold text-slate-900 mb-1 gujarati';
+      } else {
+        document.getElementById('quiz-q-script').className = 'text-3xl sm:text-4xl font-bold text-slate-900 mb-1 devanagari';
+      }
+
+      // Render options
+      const container = document.getElementById('quiz-options-container');
+      container.innerHTML = '';
+
+      q.options.forEach((optText) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-opt-btn w-full text-left p-3.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 text-slate-800 text-sm font-medium transition-all';
+        btn.textContent = optText;
+        btn.addEventListener('click', () => handleQuizAnswer(optText, btn));
+        container.appendChild(btn);
+      });
+
+      document.getElementById('quiz-explanation').classList.add('hidden');
+      document.getElementById('btn-quiz-next').classList.add('hidden');
+    }
+
+    function handleQuizAnswer(selectedText, btnEl) {
+      if (answerSubmitted) return;
+      answerSubmitted = true;
+
+      const q = quizQuestions[currentQuizIndex];
+      const isCorrect = selectedText === q.correctMeaning;
+
+      if (isCorrect) {
+        quizScore++;
+        btnEl.className = 'w-full text-left p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 text-sm font-semibold transition-all';
+        document.getElementById('quiz-feedback-icon').textContent = '✓';
+        document.getElementById('quiz-feedback-title').textContent = 'Correct!';
+        document.getElementById('quiz-feedback-title').className = 'font-bold text-emerald-800';
+      } else {
+        btnEl.className = 'w-full text-left p-3.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-900 text-sm font-semibold transition-all';
+        document.getElementById('quiz-feedback-icon').textContent = '✕';
+        document.getElementById('quiz-feedback-title').textContent = 'Incorrect';
+        document.getElementById('quiz-feedback-title').className = 'font-bold text-rose-800';
+
+        // Highlight correct option
+        document.querySelectorAll('.quiz-opt-btn').forEach(b => {
+          if (b.textContent === q.correctMeaning) {
+            b.className = 'w-full text-left p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 text-sm font-semibold transition-all';
+          }
+        });
+      }
+
+      document.getElementById('quiz-score-live').textContent = `Score: ${quizScore}`;
+      document.getElementById('quiz-feedback-text').innerHTML = `<strong>Accurate Meaning:</strong> ${q.correctMeaning}<br><span class="text-slate-500">${q.notes}</span>`;
+      document.getElementById('quiz-feedback-example').innerHTML = `<strong>Context in a sentence:</strong> "${q.example_orig}" — <em>${q.example_en}</em>`;
+      document.getElementById('quiz-explanation').classList.remove('hidden');
+
+      const nextBtn = document.getElementById('btn-quiz-next');
+      if (currentQuizIndex === quizQuestions.length - 1) {
+        nextBtn.textContent = 'View Final Results 🎉';
+      } else {
+        nextBtn.textContent = 'Continue to Next Question →';
+      }
+      nextBtn.classList.remove('hidden');
+    }
+
+    document.getElementById('btn-quiz-next').addEventListener('click', () => {
+      if (currentQuizIndex < quizQuestions.length - 1) {
+        currentQuizIndex++;
+        renderQuizQuestion();
+      } else {
+        showQuizResults();
+      }
+    });
+
+    function showQuizResults() {
+      document.getElementById('quiz-active').classList.add('hidden');
+      document.getElementById('quiz-finished').classList.remove('hidden');
+
+      document.getElementById('quiz-final-score').textContent = `${quizScore} / ${quizQuestions.length}`;
+      const pct = Math.round((quizScore / quizQuestions.length) * 100);
+      document.getElementById('quiz-percentage').textContent = `${pct}% Correct`;
+    }
+
+    // ==========================================
+    // BROWSE TABLE
+    // ==========================================
+    function renderBrowseTable(filterText = '') {
+      const tbody = document.getElementById('browse-table-body');
+      tbody.innerHTML = '';
+
+      const searchLower = filterText.toLowerCase().trim();
+      const matched = WORDS.filter(w => {
+        return w.word.toLowerCase().includes(searchLower) ||
+               w.script.toLowerCase().includes(searchLower) ||
+               w.meaning.toLowerCase().includes(searchLower) ||
+               (w.example_orig && w.example_orig.toLowerCase().includes(searchLower)) ||
+               w.lang.toLowerCase().includes(searchLower);
+      });
+
+      document.getElementById('browse-count').textContent = matched.length;
+
+      matched.forEach(w => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors border-b border-slate-100';
+
+        const scriptClass = w.category === 'Gujarati' ? 'gujarati font-bold text-slate-900' : 'devanagari font-bold text-slate-900';
+
+        tr.innerHTML = `
+          <td class="py-3 px-4">
+            <div class="${scriptClass} text-base">${w.script}</div>
+            <div class="text-xs text-indigo-600 font-medium">${w.word}</div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium ${w.category === 'Gujarati' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-indigo-50 text-indigo-800 border border-indigo-200'}">
+              ${w.lang}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-slate-700 font-medium text-xs sm:text-sm">
+            <div>${w.meaning}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5 font-normal">${w.notes}</div>
+          </td>
+          <td class="py-3 px-4 text-slate-600 text-xs hidden md:table-cell">
+            <div class="font-medium text-slate-800 mb-0.5">${w.example_orig || 'N/A'}</div>
+            <div class="text-slate-500 italic">"${w.example_en || 'N/A'}"</div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('browse-search').addEventListener('input', (e) => {
+      renderBrowseTable(e.target.value);
+    });
+
+    // Initialize
+    updateCardUI();
+  </script>
+</body>
+</html>
